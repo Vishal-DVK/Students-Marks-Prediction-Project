@@ -2,51 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Student Mark Predictor</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Student Marks Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f4f8fb;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
             text-align: center;
-            max-width: 400px;
-            width: 90%;
+            padding: 40px;
+            background-color: #f2f8ff;
         }
 
         h1 {
-            color: #007bff;
-            margin-bottom: 1rem;
+            color: #004080;
+            margin-bottom: 10px;
+        }
+
+        form {
+            background: white;
+            padding: 30px;
+            margin: auto;
+            display: inline-block;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         input[type="number"] {
-            width: 100%;
             padding: 10px;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            margin-bottom: 1rem;
+            font-size: 16px;
+            width: 200px;
+            margin-bottom: 20px;
         }
 
         button {
+            padding: 10px 20px;
+            font-size: 16px;
             background-color: #007bff;
             color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 1rem;
-            border-radius: 10px;
+            border-radius: 5px;
             cursor: pointer;
         }
 
@@ -54,27 +47,28 @@
             background-color: #0056b3;
         }
 
-        footer {
-            margin-top: 2rem;
-            color: #888;
-            font-size: 0.9rem;
+        .logo {
+            margin-bottom: 30px;
+        }
+
+        .logo img {
+            width: 150px;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Enter Study Hours</h1>
-        <form action="/predict" method="post">
-            <input type="number" name="study_hours" placeholder="e.g. 5" min="1" max="24" required>
-            <br>
-            <button type="submit">Predict Marks</button>
-        </form>
+    <div class="logo">
+        <img src="{{ url_for('static', filename='college_banner2.png') }}" alt="College Logo">
     </div>
 
-    <footer>
-        &copy; 2025 Student Mark Predictor
-    </footer>
+    <h1>Enter Study Hours to Predict Marks</h1>
+
+    <form action="/predict" method="post">
+        <input type="number" name="study_hours" step="any" placeholder="e.g. 5" required>
+        <br>
+        <button type="submit">Predict Marks</button>
+    </form>
 
 </body>
 </html>
