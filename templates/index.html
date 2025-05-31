@@ -70,5 +70,10 @@
         <button type="submit">Predict Marks</button>
     </form>
 
+    {% if prediction_text %}
+    <h3>{{ prediction_text }}</h3>
+{% endif %}
+
+
 </body>
 </html>
