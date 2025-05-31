@@ -1,118 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Student Mark Predictor ML App</title>
+import numpy as np
+import pandas as pd
+from flask import Flask, request, send_from_directory, redirect, url_for
+import joblib
+import os
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&display=swap" rel="stylesheet">
+app = Flask(__name__, static_folder='static')
+model = joblib.load('students_marks_predictor.pkl')  # Ensure file is in root dir or use relative path
 
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Roboto', sans-serif;
-      background: #f4f7fa;
-      color: #333;
-    }
+df = pd.DataFrame()
 
-    img {
-      width: 100%;
-      max-height: 200px;
-      object-fit: cover;
-    }
+# Serve static index.html
+@app.route('/')
+def home():
+    return send_from_directory(app.static_folder, 'index.html')
 
-    h1 {
-      color: #0077cc;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
 
-    .container {
-      max-width: 500px;
-      margin: 40px auto;
-      padding: 30px;
-      background: #ffffff;
-      border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
+@app.route('/predict', methods=['POST'])
+def predict():
+    global df
 
-    input[type="number"] {
-      width: 80%;
-      padding: 12px;
-      margin: 10px 0 20px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-    }
+    input_features = [int(x) for x in request.form.values()]
+    features_value = np.array(input_features)
 
-    .button_css {
-      background-color: #0077cc;
-      color: white;
-      border: none;
-      padding: 15px 30px;
-      text-transform: uppercase;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
+    if input_features[0] < 0 or input_features[0] > 24:
+        return f"""
+            <html>
+            <body style="font-family:sans-serif; text-align:center; padding:40px;">
+                <h2>Please enter valid hours between 1 to 24 if you live on the earth.</h2>
+                <a href="/">Back to Home</a>
+            </body>
+            </html>
+        """
 
-    .button_css:hover {
-      background-color: #005fa3;
-    }
+    output = model.predict([features_value])[0].round(2)
 
-    h2 {
-      color: #2c3e50;
-      margin-top: 30px;
-    }
+    df = pd.concat([df, pd.DataFrame({
+        'Study Hours': input_features,
+        'Predicted Output': [output]
+    })], ignore_index=True)
 
-    @media (max-width: 600px) {
-      .container {
-        margin: 20px;
-        padding: 20px;
-      }
+    df.to_csv('smp_data_from_app.csv')
 
-      input[type="number"] {
-        width: 100%;
-      }
-    }
-  </style>
-</head>
-<body>
+    return f"""
+        <html>
+        <body style="font-family:sans-serif; text-align:center; padding:40px;">
+            <h2>You will get <strong>{output}%</strong> marks when you study <strong>{int(features_value[0])}</strong> hours per day.</h2>
+            <a href="/">Back to Home</a>
+        </body>
+        </html>
+    """
 
-  <!-- University Banner -->
-  <div>
-    <img src="static/college_banner2.png" alt="University Banner">
-  </div>
 
-  <!-- Prediction Form Container -->
-  <div class="container">
-    <h1>Enter Study Hours to Predict Marks</h1>
-    <input type="number" id="studyHoursInput" placeholder="e.g. 5" required />
-    <br>
-    <button class="button_css" onclick="predictMarks()">Predict Marks</button>
-
-    <!-- Prediction result will appear here -->
-    <h2 id="predictionResult"></h2>
-  </div>
-
-  <script>
-    async function predictMarks() {
-      const studyHours = document.getElementById('studyHoursInput').value;
-
-      const response = await fetch('/predict', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ study_hours: studyHours })
-      });
-
-      const data = await response.json();
-      document.getElementById('predictionResult').innerText = data.prediction_text;
-    }
-  </script>
-
-</body>
-</html>
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))  # Render will use PORT env
+    app.run(host='0.0.0.0', port=port)
