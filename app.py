@@ -1,56 +1,30 @@
+from flask import Flask, render_template, request, jsonify
 import numpy as np
-import pandas as pd
-from flask import Flask, request, send_from_directory, redirect, url_for
-import joblib
-import os
+import pickle
 
-app = Flask(__name__, static_folder='static')
-model = joblib.load('students_marks_predictor.pkl')  # Ensure file is in root dir or use relative path
+app = Flask(__name__)
 
-df = pd.DataFrame()
+# Load the trained model
+model = pickle.load(open('students_marks_predictor.pkl', 'rb'))
 
-# Serve static index.html
 @app.route('/')
 def home():
-    return send_from_directory(app.static_folder, 'index.html')
-
+    return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    global df
+    try:
+        # Receive data from frontend as JSON
+        data = request.get_json()
+        study_hours = float(data['study_hours'])
 
-    input_features = [int(x) for x in request.form.values()]
-    features_value = np.array(input_features)
+        # Make prediction
+        input_data = np.array([[study_hours]])
+        prediction = model.predict(input_data)[0]
 
-    if input_features[0] < 0 or input_features[0] > 24:
-        return f"""
-            <html>
-            <body style="font-family:sans-serif; text-align:center; padding:40px;">
-                <h2>Please enter valid hours between 1 to 24 if you live on the earth.</h2>
-                <a href="/">Back to Home</a>
-            </body>
-            </html>
-        """
-
-    output = model.predict([features_value])[0].round(2)
-
-    df = pd.concat([df, pd.DataFrame({
-        'Study Hours': input_features,
-        'Predicted Output': [output]
-    })], ignore_index=True)
-
-    df.to_csv('smp_data_from_app.csv')
-
-    return f"""
-        <html>
-        <body style="font-family:sans-serif; text-align:center; padding:40px;">
-            <h2>You will get <strong>{output}%</strong> marks when you study <strong>{int(features_value[0])}</strong> hours per day.</h2>
-            <a href="/">Back to Home</a>
-        </body>
-        </html>
-    """
-
+        return jsonify({'prediction_text': f'Predicted Marks: {round(prediction, 2)}'})
+    except Exception as e:
+        return jsonify({'prediction_text': f'Error: {str(e)}'})
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Render will use PORT env
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
