@@ -1,52 +1,56 @@
 import numpy as np
 import pandas as pd
-from flask import Flask,request,render_template
+from flask import Flask, request, send_from_directory, redirect, url_for
 import joblib
 import os
 
-app = Flask(__name__)
-model = joblib.load("students_marks_predictor.pkl")
-
+app = Flask(__name__, static_folder='static')
+model = joblib.load('students_marks_predictor.pkl')  # Ensure file is in root dir or use relative path
 
 df = pd.DataFrame()
 
+# Serve static index.html
 @app.route('/')
 def home():
-    return render_static('index.html')
+    return send_from_directory(app.static_folder, 'index.html')
 
-@app.route('/predict',methods = ['POST'])
+
+@app.route('/predict', methods=['POST'])
 def predict():
     global df
-    
+
     input_features = [int(x) for x in request.form.values()]
     features_value = np.array(input_features)
-    
-    # Validate input hours
-    if input_features[0] < 0 or input_features[0] > 24:
-        return render_static('index.html', prediction_text = 'Please enter valid hours between 1 to 24 if you live on the earth')
-    
-    
-    output = model.predict([features_value])[0].round(2)
-    
-    # input and predicted value store in df then save in csv file
-    df = pd.concat([df,pd.DataFrame({'Study Hours' : input_features,'Predicted Output' :[output]})],ignore_index=True)
-    print(df)
-    df.to_csv('smp_data_from_app.csv')
-    
-    return render_static('index.html',prediction_text = 'You will get [{}%] marks, when you do study [{}] hours per day '.format(output, int(features_value[0])))
 
+    if input_features[0] < 0 or input_features[0] > 24:
+        return f"""
+            <html>
+            <body style="font-family:sans-serif; text-align:center; padding:40px;">
+                <h2>Please enter valid hours between 1 to 24 if you live on the earth.</h2>
+                <a href="/">Back to Home</a>
+            </body>
+            </html>
+        """
+
+    output = model.predict([features_value])[0].round(2)
+
+    df = pd.concat([df, pd.DataFrame({
+        'Study Hours': input_features,
+        'Predicted Output': [output]
+    })], ignore_index=True)
+
+    df.to_csv('smp_data_from_app.csv')
+
+    return f"""
+        <html>
+        <body style="font-family:sans-serif; text-align:center; padding:40px;">
+            <h2>You will get <strong>{output}%</strong> marks when you study <strong>{int(features_value[0])}</strong> hours per day.</h2>
+            <a href="/">Back to Home</a>
+        </body>
+        </html>
+    """
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # Get port from environment
-    app.run(host="0.0.0.0", port=port, debug=True)
-    
-
-
-
-
-
-
-
-
-
+    port = int(os.environ.get('PORT', 5000))  # Render will use PORT env
+    app.run(host='0.0.0.0', port=port)
