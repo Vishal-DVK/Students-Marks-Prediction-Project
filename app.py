@@ -2,9 +2,10 @@ import numpy as np
 import pandas as pd
 from flask import Flask,request,render_template
 import joblib
+import os
 
 app = Flask(__name__)
-model = joblib.load(r"C:\Users\visha\OneDrive\Desktop\Data Science\Students marks prediction project\Students marks predictor deployment\students_marks_predictor.pkl")
+model = joblib.load("students_marks_predictor.pkl")
 
 
 df = pd.DataFrame()
@@ -36,8 +37,9 @@ def predict():
 
 
 
-if __name__ == "__main__":
-    app.run(host = '127.0.0.1', port = 5000)
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))  # Get port from environment
+    app.run(host="0.0.0.0", port=port, debug=True)
     
 
 
