@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # Load the trained model
-model = pickle.load(open('Predictor.pkl', 'rb'))
+model = pickle.load(open('students_marks_predictor.pkl', 'rb'))
 
 @app.route('/')
 def home():
