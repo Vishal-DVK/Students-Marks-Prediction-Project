@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Mark Predictor ML App</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: #f4f7fa;
+      color: #333;
+    }
+
+    img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+    }
+
+    h1 {
+      color: #0077cc;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 30px;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    input[type="number"] {
+      width: 80%;
+      padding: 12px;
+      margin: 10px 0 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    .button_css {
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      text-transform: uppercase;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .button_css:hover {
+      background-color: #005fa3;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 20px;
+        padding: 20px;
+      }
+
+      input[type="number"] {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- University Banner -->
+  <div>
+    <img src="static/college_banner2.png" alt="University Banner">
+  </div>
+
+  <!-- Prediction Form Container -->
+  <div class="container">
+    <form action="{{ url_for('predict') }}" method="post">
+      <h1>Enter Study Hours to Predict Marks</h1>
+      <input type="number" name="study_hours" placeholder="e.g. 5" required />
+      <br>
+      <button type="submit" class="button_css">Predict Marks</button>
+    </form>
+
+    <!-- Display Prediction Result -->
+    <h2>{{ prediction_text }}</h2>
+  </div>
+
+</body>
+</html>
