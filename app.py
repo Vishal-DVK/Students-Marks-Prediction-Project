@@ -1,11 +1,12 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 import numpy as np
-import pickle
+import joblib  # Use joblib if you saved your model with it
 import os
+
 app = Flask(__name__)
 
 # Load the trained model
-model = pickle.load(open('students_marks_predictor.pkl', 'rb'))
+model = joblib.load('students_marks_predictor.pkl')
 
 @app.route('/')
 def home():
@@ -14,18 +15,22 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Receive data from frontend as JSON
-        data = request.get_json()
-        study_hours = float(data['study_hours'])
+        # Get the value from the form input
+        study_hours = float(request.form['study_hours'])
+
+        # Validate input
+        if study_hours < 1 or study_hours > 24:
+            return render_template('index.html', prediction_text="Please enter valid hours between 1 and 24.")
 
         # Make prediction
         input_data = np.array([[study_hours]])
         prediction = model.predict(input_data)[0]
 
-        return jsonify({'prediction_text': f'Predicted Marks: {round(prediction, 2)}'})
+        return render_template('index.html', prediction_text=f'Predicted Marks: {round(prediction, 2)}')
+
     except Exception as e:
-        return jsonify({'prediction_text': f'Error: {str(e)}'})
+        return render_template('index.html', prediction_text=f'Error: {str(e)}')
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Render will use PORT env
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
