@@ -1,56 +1,80 @@
-import numpy as np
-import pandas as pd
-from flask import Flask, request, send_from_directory, redirect, url_for
-import joblib
-import os
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Mark Predictor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f8fb;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
 
-app = Flask(__name__, static_folder='static')
-model = joblib.load('students_marks_predictor.pkl')  # Ensure file is in root dir or use relative path
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
 
-df = pd.DataFrame()
+        h1 {
+            color: #007bff;
+            margin-bottom: 1rem;
+        }
 
-# Serve static index.html
-@app.route('/')
-def home():
-    return send_from_directory(app.static_folder, 'index.html')
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
 
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+        }
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    global df
+        button:hover {
+            background-color: #0056b3;
+        }
 
-    input_features = [int(x) for x in request.form.values()]
-    features_value = np.array(input_features)
+        footer {
+            margin-top: 2rem;
+            color: #888;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
 
-    if input_features[0] < 0 or input_features[0] > 24:
-        return f"""
-            <html>
-            <body style="font-family:sans-serif; text-align:center; padding:40px;">
-                <h2>Please enter valid hours between 1 to 24 if you live on the earth.</h2>
-                <a href="/">Back to Home</a>
-            </body>
-            </html>
-        """
+    <div class="container">
+        <h1>Enter Study Hours</h1>
+        <form action="/predict" method="post">
+            <input type="number" name="study_hours" placeholder="e.g. 5" min="1" max="24" required>
+            <br>
+            <button type="submit">Predict Marks</button>
+        </form>
+    </div>
 
-    output = model.predict([features_value])[0].round(2)
+    <footer>
+        &copy; 2025 Student Mark Predictor
+    </footer>
 
-    df = pd.concat([df, pd.DataFrame({
-        'Study Hours': input_features,
-        'Predicted Output': [output]
-    })], ignore_index=True)
-
-    df.to_csv('smp_data_from_app.csv')
-
-    return f"""
-        <html>
-        <body style="font-family:sans-serif; text-align:center; padding:40px;">
-            <h2>You will get <strong>{output}%</strong> marks when you study <strong>{int(features_value[0])}</strong> hours per day.</h2>
-            <a href="/">Back to Home</a>
-        </body>
-        </html>
-    """
-
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Render will use PORT env
-    app.run(host='0.0.0.0', port=port)
+</body>
+</html>
